@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, Alert} from 'react-native';
 
-let {width} = Dimensions.get('window');
+let width = Dimensions.get('window').width;
+// console.log('width:',width);
+
 let edUsername = null;
 let edPassword = null;
 
@@ -33,7 +35,7 @@ export default class Login extends Component {
     }
 
     _pwChangText(input) {
-        edPassword = input
+        edPassword = input;
     }
 
     btOnClick() {
@@ -46,29 +48,31 @@ export default class Login extends Component {
         } else {
             // noinspection JSAnnotator
             function login(){
-                console.log('loading');
+                console.log('登录中...');
 
-                fetch('https://raw.githubusercontent.com/facebook/react-native/0.51-stable/docs/MoviesExample.json'
-                //     , {
-                //     method: 'POST',
-                //     headers: {
-                //         'Accept': 'application/json',
-                //         'Content-Type': 'application/x-www-form-urlencoded',
-                //         'client-type': 'android'
-                //     },
-                //     body: {
-                //         'login_type': 'username',
-                //         'username': '60001',
-                //         'password': '60001',
-                //         'device_id': '123456789xx'
-                //     }
-                // }
+                fetch('http://xchw.xchw.online/api/system/login'
+                    , {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'client-type': 'android'
+                    },
+                    body: JSON.stringify({
+                        'login-type': 'username',
+                        'username': edUsername,
+                        'password': edPassword,
+                        'device_id': '123456789xx',
+                        'department_uuid': 'dept-hl'
+                    })
+                }
                 ).then(response => response.json())
                     .then(responseJson => {
-                        console.log(responseJson);
+                        ToastAndroid.show(responseJson.message,ToastAndroid.SHORT);
+                        console.log('json', responseJson);
                     })
                     .catch(error => {
-                        console.log(error);
+                        console.log('error:', error);
                     })
             }
             login()
@@ -76,7 +80,6 @@ export default class Login extends Component {
     };
 
     render() {
-        // width = width - 48;
         return (
             <View style={styles.par}>
                 <View style={styles.container}>
@@ -89,7 +92,7 @@ export default class Login extends Component {
 
                     <TextInput style={styles.pw}
                                placeholder={'请输入密码'}
-                               keyboardType='visible-password'
+                               keyboardType='email-address'
                                onChangeText={this._pwChangText}
                         //    value={this.state.password}
                     />
@@ -116,7 +119,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',//水平居中
     },
     us: {
-        width: 432,
+        width: width-48,
         height: 48,
         backgroundColor: '#ffffff',
         paddingLeft: 10,
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     pw: {
-        width: 432,
+        width: width-48,
         height: 48,
         marginTop: 20,
         backgroundColor: '#ffffff',
@@ -133,7 +136,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     submit: {
-        width: 432,
+        width: width-48,
         marginTop: 32,
         height: 48,
         borderRadius: 6,
@@ -147,24 +150,22 @@ const styles = StyleSheet.create({
     },
     layout: {
         flexDirection: 'row',
-        width: 432,
+        justifyContent: 'space-between',
+        width: width,
         height: 48,
         marginTop: 8
     },
     textLeft: {
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'center',
         marginLeft: 24,
         textAlignVertical: 'center',
-        fontSize: 14
+        fontSize: 14,
+        justifyContent: 'flex-start'
     },
     textRight: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'baseline',
-        textAlign: 'right',
-        alignSelf: 'center',
         fontSize: 14,
+        textAlignVertical:'center',
+        textAlign:'right',
+        marginRight:24
     }
 });
