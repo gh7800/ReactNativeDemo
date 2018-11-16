@@ -1,16 +1,12 @@
-import React, {Component} from 'react';
-import {StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, Alert} from 'react-native';
+import React, { Component } from 'react';
+import { StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, ActivityIndicator, TouchableOpacity } from 'react-native';
 
 let width = Dimensions.get('window').width;
 // console.log('width:',width);
 
-let edUsername = null;
-let edPassword = null;
-
 /**
  * 登录页
  */
-
 export default class Login extends Component {
 
     constructor(props) {
@@ -20,84 +16,97 @@ export default class Login extends Component {
 
         this.state = {
             tit: '登录',
+            animatingt: false,
+            edUsername: '',
+            edPassword: ''
         }
     }
 
     //接收参数
-    static navigationOptions = ({navigation}) => ({
+    static navigationOptions = ({ navigation }) => ({
         headerTitle: navigation.state.params.title,
     });
 
 
     _onChangText(input) {
-        console.log('input:', input);
-        edUsername = input;
+        // edUsername = input;
+        this.setState({
+            edUsername:input
+        })
+        console.log('edUsername:', this.state.edUsername);
     }
 
     _pwChangText(input) {
-        edPassword = input;
+        // edPassword = input;
+        this.setState({
+            edPassword : input
+        })
+        console.log('edPassword:', this.state.edPassword);
     }
 
     btOnClick() {
-        console.log('username:', edUsername);
 
-        if (edUsername === null || 0 === edUsername.length) {
+        console.log('username:', this.state.edUsername+this.state.edPassword);
+
+        if (!this.state.edUsername) {
             ToastAndroid.show('请输入账号', ToastAndroid.SHORT);
-        } else if (edPassword === null || 0 === edPassword.length) {
+        } else if (!this.state.edPassword) {
             ToastAndroid.show('请输入密码', ToastAndroid.SHORT);
+        
         } else {
-            // noinspection JSAnnotator
-            function login(){
-                console.log('登录中...');
-
+            function login(usname,pwd) {
+                console.log('登录中...'+usname);
                 fetch('http://xchw.xchw.online/api/system/login'
                     , {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'client-type': 'android'
-                    },
-                    body: JSON.stringify({
-                        'login-type': 'username',
-                        'username': edUsername,
-                        'password': edPassword,
-                        'device_id': '123456789xx',
-                        'department_uuid': 'dept-hl'
-                    })
-                }
+                        method: 'POST',
+                        headers: {
+                            'client-type': 'android',
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            'login-type': 'username',
+                            'username':usname,
+                            'password': pwd,
+                            'department_uuid': 'dept-hl'
+                        })
+                    }
                 ).then(response => response.json())
                     .then(responseJson => {
-                        ToastAndroid.show(responseJson.message,ToastAndroid.SHORT);
+                        ToastAndroid.show(responseJson.message, ToastAndroid.SHORT);
                         console.log('json', responseJson);
+
                     })
                     .catch(error => {
                         console.log('error:', error);
                     })
             }
-            login()
+            login(this.state.edUsername,this.state.edPassword)
         }
     };
 
     render() {
         return (
             <View style={styles.par}>
+
+
+                <ActivityIndicator style={[flex = 1, alignItems = 'center', justifyContent = 'center']} size='large' animating={this.state.animatingt}></ActivityIndicator>
+
+
                 <View style={styles.container}>
                     <TextInput style={styles.us}
-                               placeholder={'请输入账号'}
-                               keyboardType='numeric'
-                               onChangeText={this._onChangText}
-                        // value={this.state.username}
+                        placeholder={'请输入账号'}
+                        keyboardType='numeric'
+                        onChangeText={this._onChangText.bind(this)}
                     />
 
                     <TextInput style={styles.pw}
-                               placeholder={'请输入密码'}
-                               keyboardType='email-address'
-                               onChangeText={this._pwChangText}
-                        //    value={this.state.password}
+                        placeholder={'请输入密码'}
+                        keyboardType='email-address'
+                        onChangeText={this._pwChangText.bind(this)}
                     />
-
-                    <Text style={styles.submit} onPress={this.btOnClick}>登录</Text>
+                    <TouchableOpacity activeOpacity={0.5} onPress={this.btOnClick.bind(this)}>
+                    <Text style={styles.submit} >登录</Text>
+                    </TouchableOpacity>
                 </View>
                 <View style={styles.layout}>
                     <Text style={styles.textLeft}>忘记密码?</Text>
@@ -115,11 +124,10 @@ const styles = StyleSheet.create({
     },
     container: {
         paddingTop: 100,
-        // justifyContent: 'center',垂直居中
-        alignItems: 'center',//水平居中
+        alignItems: 'center',
     },
     us: {
-        width: width-48,
+        width: width - 48,
         height: 48,
         backgroundColor: '#ffffff',
         paddingLeft: 10,
@@ -127,7 +135,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     pw: {
-        width: width-48,
+        width: width - 48,
         height: 48,
         marginTop: 20,
         backgroundColor: '#ffffff',
@@ -136,7 +144,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     submit: {
-        width: width-48,
+        width: width - 48,
         marginTop: 32,
         height: 48,
         borderRadius: 6,
@@ -164,8 +172,9 @@ const styles = StyleSheet.create({
     textRight: {
         flex: 1,
         fontSize: 14,
-        textAlignVertical:'center',
-        textAlign:'right',
-        marginRight:24
+        textAlignVertical: 'center',
+        textAlign: 'right',
+        marginRight: 24
     }
 });
+
