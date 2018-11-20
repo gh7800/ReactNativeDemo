@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, TouchableOpacity } from 'react-native';
+import { Loading } from '../utils/Loading';
+import { Toast } from '../utils/Toast';
+import Constans from '../utils/Constans';
+import StoreUtil from '../utils/StoreUtil';
 
 let width = Dimensions.get('window').width;
 // console.log('width:',width);
@@ -29,33 +33,31 @@ export default class Login extends Component {
 
 
     _onChangText(input) {
-        // edUsername = input;
         this.setState({
-            edUsername:input
+            edUsername: input
         })
         console.log('edUsername:', this.state.edUsername);
     }
 
     _pwChangText(input) {
-        // edPassword = input;
         this.setState({
-            edPassword : input
-        })
+            edPassword: input
+        });
         console.log('edPassword:', this.state.edPassword);
     }
 
     btOnClick() {
 
-        console.log('username:', this.state.edUsername+this.state.edPassword);
+        console.log('username:', this.state.edUsername + this.state.edPassword);
 
         if (!this.state.edUsername) {
             ToastAndroid.show('请输入账号', ToastAndroid.SHORT);
         } else if (!this.state.edPassword) {
             ToastAndroid.show('请输入密码', ToastAndroid.SHORT);
-        
         } else {
-            function login(usname,pwd) {
-                console.log('登录中...'+usname);
+            Loading.show(Constans.loading);
+            // noinspection JSAnnotator
+            function login(usname, pwd) {
                 fetch('http://xchw.xchw.online/api/system/login'
                     , {
                         method: 'POST',
@@ -65,32 +67,39 @@ export default class Login extends Component {
                         },
                         body: JSON.stringify({
                             'login-type': 'username',
-                            'username':usname,
+                            'username': usname,
                             'password': pwd,
                             'department_uuid': 'dept-hl'
                         })
                     }
                 ).then(response => response.json())
                     .then(responseJson => {
-                        ToastAndroid.show(responseJson.message, ToastAndroid.SHORT);
                         console.log('json', responseJson);
+                        
+                        Toast.showSuccess(responseJson.message);
+                        let token = responseJson.data.token;
 
+                        StoreUtil.insertData(Constans.TOKEN,token);
+                        
+                        this.timer = setTimeout(() => {
+                            Loading.hidden();
+                            let tk = StoreUtil.getKeyData(Constans.TOKEN);
+                            console.log('token=',tk);
+                        }, 2000);
                     })
                     .catch(error => {
                         console.log('error:', error);
                     })
             }
-            login(this.state.edUsername,this.state.edPassword)
+            login(this.state.edUsername, this.state.edPassword)
         }
     };
-
+    componentWillUnmount(){
+        this.timer && clearTimeout(this.timer)
+    }
     render() {
         return (
             <View style={styles.par}>
-
-
-                <ActivityIndicator style={[flex = 1, alignItems = 'center', justifyContent = 'center']} size='large' animating={this.state.animatingt}></ActivityIndicator>
-
 
                 <View style={styles.container}>
                     <TextInput style={styles.us}
@@ -105,7 +114,7 @@ export default class Login extends Component {
                         onChangeText={this._pwChangText.bind(this)}
                     />
                     <TouchableOpacity activeOpacity={0.5} onPress={this.btOnClick.bind(this)}>
-                    <Text style={styles.submit} >登录</Text>
+                        <Text style={styles.submit} >登录</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.layout}>
@@ -133,6 +142,7 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         borderRadius: 6,
         borderWidth: 2,
+        textAlignVertical:'center'
     },
     pw: {
         width: width - 48,
@@ -142,6 +152,7 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         borderRadius: 6,
         borderWidth: 2,
+        textAlignVertical:'center'
     },
     submit: {
         width: width - 48,

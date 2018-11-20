@@ -11,6 +11,9 @@ import {TabNva} from './src/TabNva';
 import Images from './src/Images';
 import Mine from './src/mine/index';
 
+//关闭调式模式下的黄屏警告
+console.disableYellowBox = true;
+
 const appNva = StackNavigator({
         app:{screen : App,
             navigationOptions: ({navigation}) => ({
