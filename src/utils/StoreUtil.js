@@ -3,14 +3,14 @@
  */
 import { AsyncStorage } from 'react-native';
 
+// noinspection JSAnnotator
 const StoreUtil = {
     insertData: async (key, value) => {
         try {
             if (key && value) {
-                // console.log('insertdata')
                 await AsyncStorage.setItem(key, value, function (error) {
                     if (error) {
-                        console.log('保存失败');
+                        console.log('保存失败:',error);
                     } else {
                         console.log('保存成功');
                     }
@@ -24,15 +24,7 @@ const StoreUtil = {
     getKeyData: async (key) => {
         try {
             if (key) {
-                // console.log('getKeyData')
-                await AsyncStorage.getItem(key, function (error,result) {
-                    if (error) {
-                        console.log('读取失败');
-                    } else {
-                        console.log('读取成功',result);
-                        return result;
-                    }
-                })
+                return await AsyncStorage.getItem(key);
             }
         } catch (e) {
             console.log(e)

@@ -6,7 +6,7 @@ import Constans from '../utils/Constans';
 import StoreUtil from '../utils/StoreUtil';
 
 let width = Dimensions.get('window').width;
-// console.log('width:',width);
+let token = null;
 
 /**
  * 登录页
@@ -24,12 +24,37 @@ export default class Login extends Component {
             edUsername: '',
             edPassword: ''
         }
+
+        StoreUtil.getKeyData(Constans.TOKEN)
+        .then((datas) => {
+            datas: datas
+            token = datas;
+            this.setState(() => {
+                this.state.edPassword = token;
+            })
+            console.log('token1 ==', this.state.edPassword);
+        });
+
+    }
+    componentWillReceiveProps() {
+        console.log('--componentWillReceiveProps');
+        
+        // StoreUtil.getKeyData(Constans.TOKEN)
+        //     .then((datas) => {
+        //         datas: datas
+        //         token = datas;
+        //         this.setState(() => {
+        //             this.state.edPassword = token;
+        //         })
+        //         console.log('token1 ==', this.state.edPassword);
+
+        //     });
     }
 
     //接收参数
-    static navigationOptions = ({ navigation }) => ({
-        headerTitle: navigation.state.params.title,
-    });
+    // static navigationOptions = ({ navigation }) => ({
+    //     headerTitle: navigation.state.params.title,
+    // });
 
 
     _onChangText(input) {
@@ -74,17 +99,20 @@ export default class Login extends Component {
                     }
                 ).then(response => response.json())
                     .then(responseJson => {
-                        console.log('json', responseJson);
-                        
+                        console.log('json', responseJson.success);
+
                         Toast.showSuccess(responseJson.message);
+
+                        if (!responseJson.success) {
+                            return;
+                        }
+
                         let token = responseJson.data.token;
 
-                        StoreUtil.insertData(Constans.TOKEN,token);
-                        
+                        StoreUtil.insertData(Constans.TOKEN, token);
+
                         this.timer = setTimeout(() => {
                             Loading.hidden();
-                            let tk = StoreUtil.getKeyData(Constans.TOKEN);
-                            console.log('token=',tk);
                         }, 2000);
                     })
                     .catch(error => {
@@ -94,7 +122,7 @@ export default class Login extends Component {
             login(this.state.edUsername, this.state.edPassword)
         }
     };
-    componentWillUnmount(){
+    componentWillUnmount() {
         this.timer && clearTimeout(this.timer)
     }
     render() {
@@ -105,12 +133,14 @@ export default class Login extends Component {
                     <TextInput style={styles.us}
                         placeholder={'请输入账号'}
                         keyboardType='numeric'
+                        value={this.state.edUsername}
                         onChangeText={this._onChangText.bind(this)}
                     />
 
                     <TextInput style={styles.pw}
                         placeholder={'请输入密码'}
                         keyboardType='email-address'
+                        value = {this.state.edPassword}
                         onChangeText={this._pwChangText.bind(this)}
                     />
                     <TouchableOpacity activeOpacity={0.5} onPress={this.btOnClick.bind(this)}>
@@ -142,7 +172,7 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         borderRadius: 6,
         borderWidth: 2,
-        textAlignVertical:'center'
+        textAlignVertical: 'center'
     },
     pw: {
         width: width - 48,
@@ -152,7 +182,7 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         borderRadius: 6,
         borderWidth: 2,
-        textAlignVertical:'center'
+        textAlignVertical: 'center'
     },
     submit: {
         width: width - 48,
