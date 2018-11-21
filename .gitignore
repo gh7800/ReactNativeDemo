@@ -57,3 +57,6 @@ buck-out/
 .flowconfig
 .vscode/settings.json
 yarn.lock
+.vscode/.react/index.map
+.vscode/.react/debuggerWorker.js
+.vscode/.react/index.bundle
