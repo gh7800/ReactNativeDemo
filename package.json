@@ -9,6 +9,7 @@
   "dependencies": {
     "eslint": "^5.9.0",
     "flow-bin": "^0.86.0",
+    "lodash": "^4.17.11",
     "react": "16.6.0-alpha.8af6728",
     "react-native": "0.57.3",
     "react-native-root-siblings": "^3.1.6",

@@ -1,9 +1,10 @@
-import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, TouchableOpacity } from 'react-native';
-import { Loading } from '../utils/Loading';
-import { Toast } from '../utils/Toast';
+import React, {Component} from 'react';
+import {StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, TouchableOpacity} from 'react-native';
+import {Loading} from '../utils/Loading';
+import {Toast} from '../utils/Toast';
 import Constans from '../utils/Constans';
 import StoreUtil from '../utils/StoreUtil';
+import _ from 'lodash';
 
 let width = Dimensions.get('window').width;
 let token = null;
@@ -20,35 +21,49 @@ export default class Login extends Component {
 
         this.state = {
             tit: '登录',
-            animatingt: false,
-            edUsername: '',
+            animatingState: false,
+            edUsername: 1,
             edPassword: ''
         }
-
-        StoreUtil.getKeyData(Constans.TOKEN)
-        .then((datas) => {
-            datas: datas
-            token = datas;
-            this.setState(() => {
-                this.state.edPassword = token;
-            })
-            console.log('token1 ==', this.state.edPassword);
-        });
-
     }
-    componentWillReceiveProps() {
-        console.log('--componentWillReceiveProps');
-        
-        // StoreUtil.getKeyData(Constans.TOKEN)
-        //     .then((datas) => {
-        //         datas: datas
-        //         token = datas;
-        //         this.setState(() => {
-        //             this.state.edPassword = token;
-        //         })
-        //         console.log('token1 ==', this.state.edPassword);
 
-        //     });
+    componentWillMount() {
+        console.log('--componentWillMount');
+        StoreUtil.getKeyData(Constans.TOKEN)
+            .then((value) => {
+                this.setState({
+                    edPassword: value,
+                });
+            });
+    }
+
+    /**
+     * 可优化性能
+     * 如果状态没有改变，就不重新渲染
+     * @param nextProps
+     * @param nextState
+     * @returns {boolean}
+     */
+    shouldComponentUpdate(nextProps, nextState) {
+
+        // console.log('tag', this.state.edUsername);
+        // if (!_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState)) {
+        //     console.log('shouldComponentUpdate', 'true');
+        //     return true
+        // } else {
+        //     console.log('shouldComponentUpdate', 'false');
+        //     return false
+        // }
+
+        return true
+    }
+
+    /**
+     * 组件卸载的时候执行
+     */
+    componentWillUnmount() {
+        console.log('component: ','componentWillUnmount');
+        this.timer && clearTimeout(this.timer)
     }
 
     //接收参数
@@ -60,20 +75,18 @@ export default class Login extends Component {
     _onChangText(input) {
         this.setState({
             edUsername: input
-        })
-        console.log('edUsername:', this.state.edUsername);
+        });
     }
 
     _pwChangText(input) {
         this.setState({
             edPassword: input
         });
-        console.log('edPassword:', this.state.edPassword);
     }
 
     btOnClick() {
 
-        console.log('username:', this.state.edUsername + this.state.edPassword);
+        console.log('username:', this.state.edUsername + '\n' + this.state.edPassword);
 
         if (!this.state.edUsername) {
             ToastAndroid.show('请输入账号', ToastAndroid.SHORT);
@@ -81,6 +94,7 @@ export default class Login extends Component {
             ToastAndroid.show('请输入密码', ToastAndroid.SHORT);
         } else {
             Loading.show(Constans.loading);
+
             // noinspection JSAnnotator
             function login(usname, pwd) {
                 fetch('http://xchw.xchw.online/api/system/login'
@@ -104,6 +118,7 @@ export default class Login extends Component {
                         Toast.showSuccess(responseJson.message);
 
                         if (!responseJson.success) {
+                            Loading.hidden();
                             return;
                         }
 
@@ -119,34 +134,37 @@ export default class Login extends Component {
                         console.log('error:', error);
                     })
             }
+
             login(this.state.edUsername, this.state.edPassword)
+
         }
     };
-    componentWillUnmount() {
-        this.timer && clearTimeout(this.timer)
-    }
+
     render() {
+        console.log('render（）');
+
         return (
             <View style={styles.par}>
 
                 <View style={styles.container}>
                     <TextInput style={styles.us}
-                        placeholder={'请输入账号'}
-                        keyboardType='numeric'
-                        value={this.state.edUsername}
-                        onChangeText={this._onChangText.bind(this)}
+                               placeholder={'请输入账号'}
+                               keyboardType='numeric'
+                               value={this.state.edUsername}
+                               onChangeText={this._onChangText.bind(this)}
                     />
 
                     <TextInput style={styles.pw}
-                        placeholder={'请输入密码'}
-                        keyboardType='email-address'
-                        value = {this.state.edPassword}
-                        onChangeText={this._pwChangText.bind(this)}
+                               placeholder={'请输入密码'}
+                               keyboardType='email-address'
+                               value={this.state.edPassword}
+                               onChangeText={this._pwChangText.bind(this)}
                     />
                     <TouchableOpacity activeOpacity={0.5} onPress={this.btOnClick.bind(this)}>
-                        <Text style={styles.submit} >登录</Text>
+                        <Text style={styles.submit}>登录</Text>
                     </TouchableOpacity>
                 </View>
+
                 <View style={styles.layout}>
                     <Text style={styles.textLeft}>忘记密码?</Text>
                     <Text style={styles.textRight}>注 册</Text>
