@@ -1,12 +1,14 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, TouchableOpacity} from 'react-native';
+import {StyleSheet, Text, View, TextInput, Dimensions, ToastAndroid, TouchableOpacity, Modal} from 'react-native';
 import {Loading} from '../utils/Loading';
 import {Toast} from '../utils/Toast';
 import Constans from '../utils/Constans';
 import StoreUtil from '../utils/StoreUtil';
 import _ from 'lodash';
+import HTTPUtil from '../http/HTTPUtil';
 
 let width = Dimensions.get('window').width;
+let msg = null;
 let token = null;
 
 /**
@@ -22,18 +24,24 @@ export default class Login extends Component {
         this.state = {
             tit: '登录',
             animatingState: false,
-            edUsername: 1,
-            edPassword: ''
+            edUsername: '',
+            edPassword: '',
+            modalVisible: false
         }
     }
 
     componentWillMount() {
         console.log('--componentWillMount');
+
         StoreUtil.getKeyData(Constans.TOKEN)
             .then((value) => {
+                token = value;
+            });
+        StoreUtil.getKeyData(Constans.USERNAME)
+            .then((value) => {
                 this.setState({
-                    edPassword: value,
-                });
+                    edUsername: value,
+                })
             });
     }
 
@@ -46,6 +54,7 @@ export default class Login extends Component {
      */
     shouldComponentUpdate(nextProps, nextState) {
 
+        HTTPUtil.get()
         // console.log('tag', this.state.edUsername);
         // if (!_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState)) {
         //     console.log('shouldComponentUpdate', 'true');
@@ -62,8 +71,8 @@ export default class Login extends Component {
      * 组件卸载的时候执行
      */
     componentWillUnmount() {
-        console.log('component: ','componentWillUnmount');
-        this.timer && clearTimeout(this.timer)
+        console.log('component: ', 'componentWillUnmount');
+        // this.timer && clearTimeout(this.timer)
     }
 
     //接收参数
@@ -85,8 +94,9 @@ export default class Login extends Component {
     }
 
     btOnClick() {
+        let that = this
 
-        console.log('username:', this.state.edUsername + '\n' + this.state.edPassword);
+        console.log('username:', this.state.edUsername + '\r' + this.state.edPassword);
 
         if (!this.state.edUsername) {
             ToastAndroid.show('请输入账号', ToastAndroid.SHORT);
@@ -101,7 +111,7 @@ export default class Login extends Component {
                     , {
                         method: 'POST',
                         headers: {
-                            'client-type': 'android',
+                            'client-type': 'watch',
                             'content-type': 'application/json'
                         },
                         body: JSON.stringify({
@@ -113,39 +123,93 @@ export default class Login extends Component {
                     }
                 ).then(response => response.json())
                     .then(responseJson => {
-                        console.log('json', responseJson.success);
+                        console.log('json', responseJson.data.token);
 
-                        Toast.showSuccess(responseJson.message);
+                        // Toast.showSuccess(responseJson.message);
 
                         if (!responseJson.success) {
                             Loading.hidden();
                             return;
                         }
 
-                        let token = responseJson.data.token;
-
+                        token = responseJson.data.token;
                         StoreUtil.insertData(Constans.TOKEN, token);
 
-                        this.timer = setTimeout(() => {
-                            Loading.hidden();
+                        console.log('settime');
+                        that.timer = setTimeout(() => {
+                            // Loading.hidden();
+                            console.log('thissssss', this);
+                            that.getUserMsg()
                         }, 2000);
+
+
                     })
                     .catch(error => {
                         console.log('error:', error);
                     })
+                    // .then(() => this.getUserMsg)
             }
 
             login(this.state.edUsername, this.state.edPassword)
-
         }
     };
 
+    getUserMsg() {
+        // Loading.show('获取user信息')
+        fetch('http://xchw.xchw.online/api/common/group/user-msg'
+            , {
+                method: 'POST',
+                headers: {
+                    'client-type': 'watch',
+                    'content-type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    'login-type': 'device_id',
+                    'watch_uuid': '862107030801336',
+                    'department_uuid': 'dept-hl'
+                })
+            }
+        )
+            .then(response => response.json())
+            .then(responseJson => {
+                // console.log('json', responseJson.data);
+                // Toast.showSuccess(responseJson.message);
+                if (!responseJson.success) {
+                    Loading.hidden();
+                    return;
+                }
+                let username = responseJson.data.username;
+                StoreUtil.insertData(Constans.USERNAME, username);
+
+                this.timer1 = setTimeout(() => {
+                    Loading.hidden();
+                    this.props.navigation.navigate('tab')
+                }, 2000);
+            })
+            .catch(error => {
+                console.log('error:', error);
+            })
+
+    };
+
     render() {
+        // const {navigate} = this.props.navigation;
         console.log('render（）');
 
         return (
             <View style={styles.par}>
-
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={this.state.modalVisible}
+                    onShow={() => {
+                        alert(msg);
+                    }}
+                    onRequestClose={() => {
+                        alert("Modal has been closed.");
+                    }}
+                />
                 <View style={styles.container}>
                     <TextInput style={styles.us}
                                placeholder={'请输入账号'}
@@ -166,8 +230,12 @@ export default class Login extends Component {
                 </View>
 
                 <View style={styles.layout}>
-                    <Text style={styles.textLeft}>忘记密码?</Text>
-                    <Text style={styles.textRight}>注 册</Text>
+                    <TouchableOpacity style={{marginTop: 10}} activeOpacity={0.5} onPress={this.getUserMsg.bind(this)}>
+                        <Text style={styles.textLeft}>忘记密码?</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{marginTop: 10}} activeOpacity={0.5}>
+                        <Text style={styles.textRight}>注 册</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         );
@@ -231,7 +299,7 @@ const styles = StyleSheet.create({
     textRight: {
         flex: 1,
         fontSize: 14,
-        textAlignVertical: 'center',
+        textAlignVertical: 'top',
         textAlign: 'right',
         marginRight: 24
     }
