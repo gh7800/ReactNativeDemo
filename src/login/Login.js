@@ -180,7 +180,9 @@ export default class Login extends Component {
                     return;
                 }
                 let username = responseJson.data.username;
+                let realname = responseJson.data.realname;
                 StoreUtil.insertData(Constans.USERNAME, username);
+                StoreUtil.insertData(Constans.REALNAME, realname);
 
                 this.timer1 = setTimeout(() => {
                     Loading.hidden();

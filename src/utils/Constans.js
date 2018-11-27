@@ -5,6 +5,6 @@ const Constans = {
 
     TOKEN: 'token',
     USERNAME: 'username',
-    PASSWORD: 'password,'
+    REALNAME: 'realname'
 };
 export default Constans;

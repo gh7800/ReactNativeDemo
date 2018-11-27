@@ -1,14 +1,13 @@
 import React from 'react';
-import {TabNavigator, createBottomTabNavigator} from 'react-navigation';
+import {createBottomTabNavigator} from 'react-navigation';
 import Images from './Images';
-import Photo from './photo/index';
+import Home from './home/index';
 import Mine from './mine/index';
-import {Image} from "react-native";
 
 export const TabNva = createBottomTabNavigator(
     {
         photo: {
-            screen: Photo,
+            screen: Home,
         },
         movies: {
             screen: Images,
