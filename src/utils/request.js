@@ -1,4 +1,4 @@
-import config from '../../config';
+import config from '../config';
 import Na, {NavigationActions} from 'react-navigation';
 import {Platform} from "react-native";
 
